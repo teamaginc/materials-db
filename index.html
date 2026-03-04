@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TeamAg Organic Transition — Materials Review Database</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- Top Navigation -->
+<nav class="top-nav">
+  <div class="nav-left">
+    <img src="logo.png" alt="TeamAg Incorporated" class="nav-logo">
+    <div class="nav-divider"></div>
+    <span class="nav-title">Organic Transition — Materials Review Database</span>
+  </div>
+  <div class="nav-right">
+    <span class="nav-badge">NOP National List — 7 CFR §205.601–606</span>
+    <button class="btn-nav" onclick="showAbout()">About</button>
+    <button class="btn-nav btn-add" onclick="showAddForm()">+ Add Material</button>
+  </div>
+</nav>
+
+<!-- Dashboard Stats -->
+<section class="stats-bar">
+  <div class="stat-card stat-total">
+    <div class="stat-number" id="stat-total">0</div>
+    <div class="stat-label">Total Materials</div>
+  </div>
+  <div class="stat-card stat-allowed">
+    <div class="stat-number" id="stat-allowed">0</div>
+    <div class="stat-label">Allowed</div>
+  </div>
+  <div class="stat-card stat-restricted">
+    <div class="stat-number" id="stat-restricted">0</div>
+    <div class="stat-label">Allowed w/ Restrictions</div>
+  </div>
+  <div class="stat-card stat-prohibited">
+    <div class="stat-number" id="stat-prohibited">0</div>
+    <div class="stat-label">Prohibited</div>
+  </div>
+  <div class="stat-card stat-crops">
+    <div class="stat-number" id="stat-crops">0</div>
+    <div class="stat-label">Crop Inputs</div>
+  </div>
+  <div class="stat-card stat-livestock">
+    <div class="stat-number" id="stat-livestock">0</div>
+    <div class="stat-label">Livestock Inputs</div>
+  </div>
+  <div class="stat-card stat-processing">
+    <div class="stat-number" id="stat-processing">0</div>
+    <div class="stat-label">Processing Inputs</div>
+  </div>
+</section>
+
+<!-- Filters & Search -->
+<section class="controls">
+  <div class="search-box">
+    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" id="searchInput" placeholder="Search materials by name, description, or CFR reference..." autocomplete="off">
+    <span class="search-count" id="searchCount"></span>
+  </div>
+  <div class="filter-row">
+    <div class="filter-group">
+      <label>Category</label>
+      <div class="btn-group" id="categoryFilter">
+        <button class="filter-btn active" data-value="all">All</button>
+        <button class="filter-btn" data-value="crops">Crops</button>
+        <button class="filter-btn" data-value="livestock">Livestock</button>
+        <button class="filter-btn" data-value="processing">Processing</button>
+      </div>
+    </div>
+    <div class="filter-group">
+      <label>Status</label>
+      <div class="btn-group" id="statusFilter">
+        <button class="filter-btn active" data-value="all">All</button>
+        <button class="filter-btn" data-value="allowed">Allowed</button>
+        <button class="filter-btn" data-value="restricted">Restricted</button>
+        <button class="filter-btn" data-value="prohibited">Prohibited</button>
+      </div>
+    </div>
+    <div class="filter-group">
+      <label>Use Type</label>
+      <select id="useTypeFilter">
+        <option value="all">All Use Types</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Manufacturer</label>
+      <select id="manufacturerFilter">
+        <option value="all">All Manufacturers</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Brand</label>
+      <select id="brandFilter">
+        <option value="all">All Brands</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Substance Type</label>
+      <div class="btn-group" id="substanceFilter">
+        <button class="filter-btn active" data-value="all">All</button>
+        <button class="filter-btn" data-value="synthetic">Synthetic</button>
+        <button class="filter-btn" data-value="nonsynthetic">Nonsynthetic</button>
+      </div>
+    </div>
+    <button class="btn-reset" onclick="resetFilters()">Reset Filters</button>
+    <button class="btn-export" onclick="exportCSV()">Export CSV</button>
+  </div>
+</section>
+
+<!-- Materials Table -->
+<section class="table-container">
+  <table id="materialsTable">
+    <thead>
+      <tr>
+        <th class="sortable" data-sort="name" onclick="sortTable('name')">Material Name <span class="sort-arrow">↕</span></th>
+        <th class="sortable" data-sort="manufacturer" onclick="sortTable('manufacturer')">Brand / Manufacturer <span class="sort-arrow">↕</span></th>
+        <th class="sortable" data-sort="category" onclick="sortTable('category')">Category <span class="sort-arrow">↕</span></th>
+        <th class="sortable" data-sort="useType" onclick="sortTable('useType')">Use Type <span class="sort-arrow">↕</span></th>
+        <th class="sortable" data-sort="status" onclick="sortTable('status')">Status <span class="sort-arrow">↕</span></th>
+        <th>Substance</th>
+        <th>CFR Reference</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+  <div class="no-results" id="noResults" style="display:none;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <p>No materials found matching your criteria.</p>
+    <button class="btn-reset" onclick="resetFilters()">Reset All Filters</button>
+  </div>
+</section>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <div class="modal-header">
+      <h2 id="modalTitle"></h2>
+      <span class="modal-badge" id="modalBadge"></span>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<!-- About Modal -->
+<div class="modal-overlay" id="aboutOverlay" onclick="closeAbout()">
+  <div class="modal modal-about" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeAbout()">&times;</button>
+    <div class="modal-header">
+      <img src="logo.png" alt="TeamAg" style="height:50px;margin-bottom:12px;">
+      <h2>About This Database</h2>
+    </div>
+    <div class="modal-body">
+      <p>The <strong>TeamAg Organic Transition Materials Review Database</strong> is a compliance reference tool for organic producers, handlers, and certifiers. It provides a searchable index of materials evaluated against the <strong>USDA National Organic Program (NOP) National List</strong> (7 CFR §205.601–606).</p>
+      <h3>How to Use</h3>
+      <ul>
+        <li><strong>Search</strong> by material name, description, or CFR reference</li>
+        <li><strong>Filter</strong> by category (Crops, Livestock, Processing), compliance status, use type, and substance type</li>
+        <li><strong>Click any row</strong> to view full details including annotations, restrictions, and regulatory references</li>
+        <li><strong>Export</strong> filtered results to CSV for your records</li>
+      </ul>
+      <h3>Compliance Status Key</h3>
+      <div class="about-statuses">
+        <span class="badge badge-allowed">Allowed</span> Material is permitted for use in organic production under the listed conditions.<br>
+        <span class="badge badge-restricted">Restricted</span> Material is allowed only with specific restrictions or annotations.<br>
+        <span class="badge badge-prohibited">Prohibited</span> Material is prohibited for use in organic production.
+      </div>
+      <h3>Disclaimer</h3>
+      <p class="disclaimer">This database is for reference purposes only. Always verify compliance with your certifying agent before using any material. The National List is subject to updates by the National Organic Standards Board (NOSB) and USDA. Last updated: March 2026.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Add Material Modal -->
+<div class="modal-overlay" id="addOverlay" onclick="closeAddForm()">
+  <div class="modal modal-add" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeAddForm()">&times;</button>
+    <div class="modal-header">
+      <h2 id="addFormTitle">Add New Material</h2>
+    </div>
+    <form id="addMaterialForm" class="add-form" onsubmit="return handleAddMaterial(event)">
+      <div class="form-grid">
+        <div class="form-group form-full">
+          <label for="fm-name">Material Name <span class="req">*</span></label>
+          <input type="text" id="fm-name" required placeholder="e.g. Calcium Hypochlorite">
+        </div>
+        <div class="form-group">
+          <label for="fm-brand">Brand Name</label>
+          <input type="text" id="fm-brand" placeholder="e.g. PyGanic EC 1.4">
+        </div>
+        <div class="form-group">
+          <label for="fm-manufacturer">Manufacturer</label>
+          <input type="text" id="fm-manufacturer" list="manufacturerList" placeholder="e.g. Fertrell Company">
+          <datalist id="manufacturerList"></datalist>
+        </div>
+        <div class="form-group">
+          <label for="fm-category">Category <span class="req">*</span></label>
+          <select id="fm-category" required>
+            <option value="">Select category...</option>
+            <option value="crops">Crops</option>
+            <option value="livestock">Livestock</option>
+            <option value="processing">Processing</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="fm-status">Compliance Status <span class="req">*</span></label>
+          <select id="fm-status" required>
+            <option value="">Select status...</option>
+            <option value="allowed">Allowed</option>
+            <option value="restricted">Allowed with Restrictions</option>
+            <option value="prohibited">Prohibited</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="fm-useType">Use Type <span class="req">*</span></label>
+          <input type="text" id="fm-useType" required list="useTypeList" placeholder="e.g. Fertilizer / Soil Amendment">
+          <datalist id="useTypeList"></datalist>
+        </div>
+        <div class="form-group">
+          <label for="fm-synthetic">Substance Type <span class="req">*</span></label>
+          <select id="fm-synthetic" required>
+            <option value="">Select type...</option>
+            <option value="true">Synthetic</option>
+            <option value="false">Nonsynthetic</option>
+          </select>
+        </div>
+        <div class="form-group form-full">
+          <label for="fm-cfr">CFR Reference</label>
+          <input type="text" id="fm-cfr" placeholder="e.g. §205.601(a)(2)">
+        </div>
+        <div class="form-group form-full">
+          <label for="fm-description">Description <span class="req">*</span></label>
+          <textarea id="fm-description" required rows="3" placeholder="Describe the material and its primary uses in organic production..."></textarea>
+        </div>
+        <div class="form-group form-full">
+          <label for="fm-restrictions">Restrictions & Annotations</label>
+          <textarea id="fm-restrictions" rows="3" placeholder="List any use restrictions, annotations, or conditions..."></textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn-cancel" onclick="closeAddForm()">Cancel</button>
+        <button type="submit" class="btn-submit" id="addFormSubmit">Add Material</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-content">
+    <span>&copy; 2026 TeamAg Incorporated — Organic Transition Services</span>
+    <span>Reference: USDA NOP National List (7 CFR §205.601–606) | For compliance verification, consult your certifying agent.</span>
+  </div>
+</footer>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

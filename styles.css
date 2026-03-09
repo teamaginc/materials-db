@@ -135,6 +135,10 @@ body {
   padding: 20px 32px;
   background: var(--white);
   border-bottom: 1px solid var(--gray-200);
+  position: sticky;
+  top: 68px;
+  z-index: 99;
+  box-shadow: var(--shadow-sm);
 }
 .search-box {
   position: relative;

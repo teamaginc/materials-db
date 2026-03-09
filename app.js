@@ -3,7 +3,7 @@
 // ============================================================
 
 let currentSort = { field: 'name', dir: 'asc' };
-let activeFilters = { category: 'all', status: 'all', useType: 'all', manufacturer: 'all', brand: 'all', substance: 'all', search: '' };
+let activeFilters = { category: 'all', status: 'all', useType: 'all', manufacturer: 'all', brand: 'all', substance: 'all', source: 'all', search: '' };
 
 // ---- Initialize ----
 document.addEventListener('DOMContentLoaded', () => {
@@ -98,6 +98,12 @@ function bindFilters() {
     renderTable();
   });
 
+  // Source select
+  document.getElementById('sourceFilter').addEventListener('change', e => {
+    activeFilters.source = e.target.value;
+    renderTable();
+  });
+
   // Search
   let debounce;
   document.getElementById('searchInput').addEventListener('input', e => {
@@ -120,6 +126,9 @@ function getFiltered() {
     if (activeFilters.substance !== 'all') {
       if (activeFilters.substance === 'synthetic' && !m.synthetic) return false;
       if (activeFilters.substance === 'nonsynthetic' && m.synthetic) return false;
+    }
+    if (activeFilters.source !== 'all' && m.source) {
+      if (!m.source.includes(activeFilters.source)) return false;
     }
     if (activeFilters.search) {
       const s = activeFilters.search;
@@ -186,6 +195,7 @@ function renderTable() {
       <td><span class="badge badge-${m.status}">${statusLabel(m.status)}</span></td>
       <td><span class="badge ${m.synthetic ? 'badge-synthetic' : 'badge-nonsynthetic'}">${m.synthetic ? 'Synthetic' : 'Nonsynthetic'}</span></td>
       <td class="cfr-ref">${m.cfr}</td>
+      <td class="source-tags">${formatSource(m.source)}</td>
       <td><button class="btn-detail" onclick="event.stopPropagation();showDetail(${m.id})">View</button></td>
     </tr>
   `).join('');
@@ -202,6 +212,18 @@ function highlight(text) {
   if (!activeFilters.search) return text;
   const re = new RegExp('(' + activeFilters.search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
   return text.replace(re, '<mark>$1</mark>');
+}
+
+function formatSource(src) {
+  if (!src) return '<span class="source-tag">—</span>';
+  const sources = src.split(',');
+  const abbrev = { 'NOP National List': 'NOP', 'OMRI GML': 'GML', 'OMRI Products List': 'OMRI' };
+  return sources.map(s => {
+    const t = s.trim();
+    const label = abbrev[t] || t;
+    const cls = t === 'NOP National List' ? 'source-nop' : t === 'OMRI GML' ? 'source-gml' : 'source-omri';
+    return `<span class="source-tag ${cls}">${label}</span>`;
+  }).join(' ');
 }
 
 function formatBrandMfr(m) {
@@ -250,7 +272,19 @@ function showDetail(id) {
       </div>
       <div class="detail-item">
         <label>CFR Reference</label>
-        <span style="font-family:monospace;">${m.cfr}</span>
+        <span style="font-family:monospace;">${m.cfr || '—'}</span>
+      </div>
+      <div class="detail-item">
+        <label>Source</label>
+        <span>${formatSource(m.source)}</span>
+      </div>
+      <div class="detail-item">
+        <label>Date Added</label>
+        <span>${m.dateAdded || '—'}</span>
+      </div>
+      <div class="detail-item">
+        <label>Last Updated</label>
+        <span>${m.lastUpdated || '—'}</span>
       </div>
     </div>
     <h3>Description</h3>
@@ -296,7 +330,7 @@ function closeAbout() {
 
 // ---- Reset ----
 function resetFilters() {
-  activeFilters = { category: 'all', status: 'all', useType: 'all', manufacturer: 'all', brand: 'all', substance: 'all', search: '' };
+  activeFilters = { category: 'all', status: 'all', useType: 'all', manufacturer: 'all', brand: 'all', substance: 'all', source: 'all', search: '' };
   document.querySelectorAll('.btn-group').forEach(group => {
     group.querySelectorAll('.filter-btn').forEach((btn, i) => {
       btn.classList.toggle('active', i === 0);
@@ -305,6 +339,7 @@ function resetFilters() {
   document.getElementById('useTypeFilter').value = 'all';
   document.getElementById('manufacturerFilter').value = 'all';
   document.getElementById('brandFilter').value = 'all';
+  document.getElementById('sourceFilter').value = 'all';
   document.getElementById('searchInput').value = '';
   renderTable();
 }
@@ -312,10 +347,10 @@ function resetFilters() {
 // ---- CSV Export ----
 function exportCSV() {
   const filtered = sortData(getFiltered());
-  const headers = ['Name', 'Brand', 'Manufacturer', 'Category', 'Use Type', 'Status', 'Substance Type', 'CFR Reference', 'Restrictions', 'Description'];
+  const headers = ['Name', 'Brand', 'Manufacturer', 'Category', 'Use Type', 'Status', 'Substance Type', 'CFR Reference', 'Restrictions', 'Description', 'Source', 'Date Added', 'Last Updated'];
   const rows = filtered.map(m => [
     m.name, m.brand || '', m.manufacturer || '', capitalize(m.category), m.useType, statusLabel(m.status),
-    m.synthetic ? 'Synthetic' : 'Nonsynthetic', m.cfr, m.restrictions, m.description
+    m.synthetic ? 'Synthetic' : 'Nonsynthetic', m.cfr, m.restrictions, m.description, m.source || '', m.dateAdded || '', m.lastUpdated || ''
   ].map(v => '"' + String(v).replace(/"/g, '""') + '"'));
 
   const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
@@ -405,13 +440,14 @@ function handleAddMaterial(e) {
     // Update existing
     const idx = MATERIALS.findIndex(m => m.id === editingId);
     if (idx !== -1) {
-      MATERIALS[idx] = { ...MATERIALS[idx], name, brand, manufacturer, category, status, useType, synthetic, cfr, description, restrictions };
+      MATERIALS[idx] = { ...MATERIALS[idx], name, brand, manufacturer, category, status, useType, synthetic, cfr, description, restrictions, lastUpdated: new Date().toISOString().slice(0, 10) };
     }
     showToast(`"${name}" updated successfully.`, 'success');
   } else {
     // Add new
     const maxId = MATERIALS.reduce((max, m) => Math.max(max, m.id), 0);
-    MATERIALS.push({ id: maxId + 1, name, brand, manufacturer, category, useType, status, synthetic, cfr, description, restrictions });
+    const today = new Date().toISOString().slice(0, 10);
+    MATERIALS.push({ id: maxId + 1, name, brand, manufacturer, category, useType, status, synthetic, cfr, description, restrictions, source: 'Manual Entry', dateAdded: today, lastUpdated: today });
     showToast(`"${name}" added to database.`, 'success');
   }
 

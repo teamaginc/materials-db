@@ -110,6 +110,15 @@
         <button class="filter-btn" data-value="nonsynthetic">Nonsynthetic</button>
       </div>
     </div>
+    <div class="filter-group">
+      <label>Source</label>
+      <select id="sourceFilter">
+        <option value="all">All Sources</option>
+        <option value="NOP National List">NOP National List</option>
+        <option value="OMRI GML">OMRI Generic Materials List</option>
+        <option value="OMRI Products List">OMRI Products List</option>
+      </select>
+    </div>
     <button class="btn-reset" onclick="resetFilters()">Reset Filters</button>
     <button class="btn-export" onclick="exportCSV()">Export CSV</button>
   </div>
@@ -127,6 +136,7 @@
         <th class="sortable" data-sort="status" onclick="sortTable('status')">Status <span class="sort-arrow">↕</span></th>
         <th>Substance</th>
         <th>CFR Reference</th>
+        <th class="sortable" data-sort="source" onclick="sortTable('source')">Source <span class="sort-arrow">↕</span></th>
         <th>Actions</th>
       </tr>
     </thead>

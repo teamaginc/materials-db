@@ -196,6 +196,7 @@ function renderTable() {
       <td><span class="badge ${m.synthetic ? 'badge-synthetic' : 'badge-nonsynthetic'}">${m.synthetic ? 'Synthetic' : 'Nonsynthetic'}</span></td>
       <td class="cfr-ref">${m.cfr}</td>
       <td class="source-tags">${formatSource(m.source)}</td>
+      <td style="font-size:12px;white-space:nowrap;">${m.dateAdded || '—'}</td>
       <td><button class="btn-detail" onclick="event.stopPropagation();showDetail(${m.id})">View</button></td>
     </tr>
   `).join('');

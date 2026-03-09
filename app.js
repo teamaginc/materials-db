@@ -218,11 +218,12 @@ function highlight(text) {
 function formatSource(src) {
   if (!src) return '<span class="source-tag">—</span>';
   const sources = src.split(',');
-  const abbrev = { 'NOP National List': 'NOP', 'OMRI GML': 'GML', 'OMRI Products List': 'OMRI' };
+  const abbrev = { 'NOP National List': 'NOP', 'OMRI GML': 'GML', 'OMRI Products List': 'OMRI', 'WSDA': 'WSDA', 'CDFA': 'CDFA', 'Manual Entry': 'Manual' };
+  const clsMap = { 'NOP National List': 'source-nop', 'OMRI GML': 'source-gml', 'OMRI Products List': 'source-omri', 'WSDA': 'source-wsda', 'CDFA': 'source-cdfa', 'Manual Entry': 'source-manual' };
   return sources.map(s => {
     const t = s.trim();
     const label = abbrev[t] || t;
-    const cls = t === 'NOP National List' ? 'source-nop' : t === 'OMRI GML' ? 'source-gml' : 'source-omri';
+    const cls = clsMap[t] || 'source-omri';
     return `<span class="source-tag ${cls}">${label}</span>`;
   }).join(' ');
 }

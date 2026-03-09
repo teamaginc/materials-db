@@ -12,6 +12,29 @@
 </head>
 <body>
 
+<!-- Login Overlay -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-card">
+    <img src="logo.png" alt="TeamAg Incorporated" class="login-logo">
+    <h1 class="login-title">Materials Review Database</h1>
+    <p class="login-subtitle">Sign in to access the database</p>
+    <form onsubmit="handleLogin(event)">
+      <div class="login-field">
+        <label for="loginEmail">Email</label>
+        <input type="email" id="loginEmail" required placeholder="you@teamaginc.com" autocomplete="email">
+      </div>
+      <div class="login-field">
+        <label for="loginPassword">Password</label>
+        <input type="password" id="loginPassword" required placeholder="Enter your password" autocomplete="current-password">
+      </div>
+      <div class="login-error" id="loginError" style="display:none;"></div>
+      <button type="submit" class="login-btn" id="loginBtn">Sign In</button>
+    </form>
+  </div>
+</div>
+
+<div id="appContainer" style="display:none;">
+
 <!-- Top Navigation -->
 <nav class="top-nav">
   <div class="nav-left">
@@ -21,8 +44,11 @@
   </div>
   <div class="nav-right">
     <span class="nav-badge">NOP National List — 7 CFR §205.601–606</span>
+    <button class="btn-gear" onclick="showSettings()" title="Settings">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    </button>
     <button class="btn-nav" onclick="showAbout()">About</button>
-    <button class="btn-nav btn-add" onclick="showAddForm()">+ Add Material</button>
+    <button class="btn-nav btn-add" id="btnAddMaterial" onclick="showAddForm()">+ Add Material</button>
   </div>
 </nav>
 
@@ -275,7 +301,61 @@
   </div>
 </footer>
 
+</div><!-- /appContainer -->
+
+<!-- Settings / Admin Modal -->
+<div class="modal-overlay" id="settingsOverlay" onclick="closeSettings()">
+  <div class="modal modal-settings" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeSettings()">&times;</button>
+    <div class="modal-header">
+      <h2>Settings</h2>
+    </div>
+    <div class="modal-body">
+      <h3>Your Account</h3>
+      <div id="currentUserInfo"></div>
+      <button class="btn-signout" onclick="handleLogout()">Sign Out</button>
+
+      <div id="adminSection" style="display:none;">
+        <h3>Team Members</h3>
+        <div id="userListBody" class="user-list"></div>
+
+        <h3>Add Team Member</h3>
+        <form id="addUserForm" onsubmit="handleAddUser(event)" class="add-user-form">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="newUserName">Name <span class="req">*</span></label>
+              <input type="text" id="newUserName" required placeholder="Full name">
+            </div>
+            <div class="form-group">
+              <label for="newUserEmail">Email <span class="req">*</span></label>
+              <input type="email" id="newUserEmail" required placeholder="user@teamaginc.com">
+            </div>
+            <div class="form-group">
+              <label for="newUserPassword">Temp Password</label>
+              <input type="text" id="newUserPassword" value="password" placeholder="Temporary password">
+            </div>
+            <div class="form-group">
+              <label for="newUserRole">Role</label>
+              <select id="newUserRole">
+                <option value="viewer">Viewer</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn-submit" id="addUserBtn">Add Team Member</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="data.js"></script>
+<script src="auth.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

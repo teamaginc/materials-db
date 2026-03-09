@@ -295,10 +295,11 @@ function showDetail(id) {
     <p>${m.restrictions}</p>
     <h3>Compliance Guidance</h3>
     <p>${getGuidance(m)}</p>
+    ${currentUserProfile && currentUserProfile.role === 'admin' ? `
     <div class="modal-actions">
       <button class="btn-edit" onclick="closeModal();showAddForm(${m.id})">Edit Material</button>
       <button class="btn-delete" onclick="deleteMaterial(${m.id})">Delete</button>
-    </div>
+    </div>` : ''}
   `;
 
   document.getElementById('modalOverlay').classList.add('active');
@@ -535,5 +536,6 @@ document.addEventListener('keydown', e => {
     closeModal();
     closeAbout();
     closeAddForm();
+    if (typeof closeSettings === 'function') closeSettings();
   }
 });
